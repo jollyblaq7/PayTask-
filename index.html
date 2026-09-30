@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PayTask</title>
+<style>
+:root{--paper:#EEF2EE;--ink:#15281F;--green:#0B7A4B;--green-d:#095F3B;--gold:#F2B632;--gold-l:#FBE7B0;--brick:#B8402D;--line:#D3DBD3;--mute:#5B6B61;--card:#fff}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Avenir Next","Segoe UI",system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.45}
+#app{max-width:720px;margin:0 auto;min-height:100vh;padding-bottom:64px}
+header{background:var(--ink);color:#fff;padding:12px 16px 0;position:sticky;top:0;z-index:5}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-weight:800;font-size:22px;letter-spacing:-.5px;display:flex;align-items:center;gap:8px}
+.brand i{font-style:normal;background:var(--gold);color:var(--ink);width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:16px}
+.roles{display:flex;background:#0d1a13;border-radius:10px;padding:3px}
+.roles button{background:none;border:0;color:#B8C7BD;font:inherit;font-size:14px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer}
+.roles button.on{background:var(--gold);color:var(--ink)}
+.tabs{display:flex;gap:4px;overflow-x:auto;margin:10px -16px 0;padding:0 16px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{background:none;border:0;color:#B8C7BD;font:inherit;font-size:15px;font-weight:600;padding:10px 12px;white-space:nowrap;border-bottom:3px solid transparent;cursor:pointer}
+.tabs button.on{color:#fff;border-bottom-color:var(--gold)}
+main{padding:16px}
+h1{font-size:24px;letter-spacing:-.4px;margin:4px 0 6px}
+h2{font-size:18px;margin:22px 0 8px}
+h3{font-size:16px;margin:0 0 4px}
+p{margin:0 0 10px}
+.mute{color:var(--mute);font-size:14px}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.num{font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.big{font-size:26px}
+.metric{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px}
+.metric.hl{background:var(--gold-l);border-color:var(--gold)}
+.metric .mute{margin:0}
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+input,select,textarea{width:100%;font:inherit;padding:11px 12px;border:1.5px solid #B9C4BB;border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset:1px}
+.btn{font:inherit;font-weight:700;background:var(--green);color:#fff;border:0;border-radius:10px;padding:12px 16px;cursor:pointer;min-height:44px}
+.btn:hover{background:var(--green-d)}
+.btn.full{width:100%;margin-top:14px}
+.btn.alt{background:#fff;color:var(--ink);border:1.5px solid #B9C4BB}
+.btn.bad{background:#fff;color:var(--brick);border:1.5px solid var(--brick)}
+.btn.sm{padding:8px 12px;min-height:38px;font-size:14px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{display:inline-block;font-size:12.5px;font-weight:700;padding:3px 9px;border-radius:99px;background:#E3EAE3;color:var(--ink)}
+.chip.live{background:#CDEBDB;color:#075B37}
+.chip.wait{background:var(--gold-l);color:#7A5600}
+.chip.bad{background:#F6D8D2;color:var(--brick)}
+.stub{display:flex;background:var(--card);border-radius:14px;margin-bottom:12px;overflow:hidden;border:1.5px solid var(--ink);cursor:pointer;text-align:left;width:100%;padding:0;font:inherit;color:inherit}
+.stub .main{flex:1;padding:14px 14px 12px;min-width:0}
+.stub .amt{position:relative;width:104px;background:var(--gold);border-left:2px dashed var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px}
+.stub .amt::before,.stub .amt::after{content:"";position:absolute;left:-10px;width:18px;height:18px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink)}
+.stub .amt::before{top:-11px}.stub .amt::after{bottom:-11px}
+.stub .amt b{font-size:24px;line-height:1.1}
+.stub .amt span{font-size:12px;font-weight:600}
+.bar{height:6px;background:#DCE4DC;border-radius:9px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--green)}
+.warn{background:#FBEAE6;border:1.5px solid var(--brick);color:#7C2617;border-radius:10px;padding:10px 12px;font-size:14px;margin:10px 0}
+.ok{background:#E2F3EA;border:1.5px solid var(--green);color:#064A2D;border-radius:10px;padding:10px 12px;font-size:14px;margin:10px 0}
+.flag{display:inline-block;font-size:12px;font-weight:700;background:#F6D8D2;color:var(--brick);border-radius:6px;padding:2px 7px;margin:2px 4px 2px 0}
+.proof{background:#F5F8F5;border:1px dashed #B9C4BB;border-radius:8px;padding:8px 10px;font-size:14px;word-break:break-word;margin:8px 0}
+.back{background:none;border:0;color:var(--green-d);font:inherit;font-weight:700;padding:4px 0;cursor:pointer;margin-bottom:6px}
+ul.clean{margin:6px 0 0;padding-left:20px}
+ul.clean li{margin:3px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:700;color:var(--mute)}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+pre{white-space:pre-wrap;background:#F5F8F5;border:1px solid var(--line);border-radius:8px;padding:10px;font:13px/1.5 ui-monospace,Menlo,monospace}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:11px 16px;border-radius:10px;font-weight:600;font-size:14px;transition:transform .2s;z-index:20;max-width:90vw}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.redlist{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.redlist span{background:#F6D8D2;color:var(--brick);font-weight:600;font-size:13px;padding:3px 9px;border-radius:99px}
+.greenlist span{background:#CDEBDB;color:#075B37}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============ CONFIG: paste your two Supabase values here ============ */
+const SUPABASE_URL='https://fcshkljaiiikkgdbzwea.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_Ix6pBBn0U8aSeW7qjfPaHQ_ZeRXsS_1';
+/* ====================================================================== */
+
+const GREEN=['Survey','Market research','Ad feedback','Website/app testing','UGC/content creation','Lead generation','Creator campaign','Promotional task','Referral campaign'];
+const RED=['Paid YouTube likes','Paid YouTube comments','Paid YouTube subscribers','Artificial views','Fake reviews','Follow-for-follow','Like-for-like','Spam','Bots'];
+const STATUS={awaiting_payment:['Awaiting payment','wait'],payment_review:['Payment check','wait'],live:['Live','live'],closed:['Closed',''],rejected:['Rejected','bad']};
+const TABS={
+  earn:[['tasks','Tasks'],['earnings','Earnings'],['account','Account']],
+  adv:[['camps','Campaigns'],['new','New campaign'],['account','Account']],
+  admin:[['queue','Approvals'],['subs','Verify'],['payouts','Payouts'],['people','Users'],['money','Economics'],['settings','Settings']]
+};
+
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>'₦'+Math.round(Number(n)||0).toLocaleString('en-NG');
+const val=id=>{const e=document.getElementById(id);return e?e.value.trim():''};
+const ts=t=>typeof t==='number'?t:new Date(t).getTime();
+const ago=t=>{const m=Math.floor((Date.now()-ts(t))/60000);if(m<1)return 'just now';if(m<60)return m+'m ago';const h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago'};
+const linkify=t=>/^https?:\/\/\S+$/i.test(t)?`<a href="${esc(t)}" target="_blank" rel="noopener noreferrer">${esc(t)}</a>`:esc(t);
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200)}
+
+const CONFIGURED=!SUPABASE_URL.startsWith('PASTE')&&!SUPABASE_ANON_KEY.startsWith('PASTE');
+let sb=null,ME=null,ST={reserve_pct:10,contrib_pct:30,min_withdraw:500,min_reward:100,pay_info:''};
+let UI={role:'earn',tab:'tasks',sel:null,authMode:'in'};
+let TASKS=[],AD=null,RT=0;
+
+async function q(p){const r=await p;if(r.error)throw r.error;return r.data}
+function price(slots,reward){const share=1-(ST.reserve_pct+ST.contrib_pct)/100;return Math.ceil(slots*reward/share/100)*100}
+function split(b){const reserve=b*ST.reserve_pct/100,contrib=b*ST.contrib_pct/100;return{rewards:b-reserve-contrib,reserve,contrib}}
+const back=()=>`<button class="back" data-act="back">Back</button>`;
+const chip=st=>`<span class="chip ${STATUS[st][1]}">${STATUS[st][0]}</span>`;
+
+/* ---------- boot ---------- */
+async function boot(){
+  if(!CONFIGURED){$('#app').innerHTML=setupScreen();return}
+  if(!window.supabase){$('#app').innerHTML='<main><div class="warn">Could not load the Supabase library. Check your internet connection and reload.</div></main>';return}
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  const {data:{session}}=await sb.auth.getSession();
+  if(session)await loadMe(session.user);
+  sb.auth.onAuthStateChange((ev)=>{if(ev==='SIGNED_OUT'){ME=null;render()}});
+  render();
+}
+async function loadMe(user){
+  try{
+    const u=user||(await sb.auth.getUser()).data.user;
+    ME=await q(sb.from('profiles').select('*').eq('id',u.id).single());
+    ME.email=u.email;
+    ST=await q(sb.from('settings').select('*').eq('id',1).single());
+  }catch(e){ME=null;toast('Could not load your account: '+(e.message||e))}
+}
+function setupScreen(){
+  return `<main><h1>Connect Supabase</h1><div class="card"><p>Open this file in a text editor and paste your project values at the top of the script:</p>
+  <pre>const SUPABASE_URL='...';\nconst SUPABASE_ANON_KEY='...';</pre>
+  <p class="mute" style="margin:0">Find both in Supabase: Project Settings, then API. Use the anon public key, never the service_role key.</p></div></main>`;
+}
+
+/* ---------- shell ---------- */
+function paint(inner,withNav=true){
+  let head=`<header><div class="top"><div class="brand"><i>₦</i>PayTask</div>`;
+  if(ME){
+    const roles=[['earn','Earn'],['adv','Advertise']];if(ME.is_admin)roles.push(['admin','Admin']);
+    head+=`<div class="roles">${roles.map(r=>`<button data-act="role" data-v="${r[0]}" class="${UI.role===r[0]?'on':''}">${r[1]}</button>`).join('')}</div>`;
+  }
+  head+=`</div>`;
+  if(ME&&withNav){const tabs=TABS[UI.role];head+=`<nav class="tabs">${tabs.map(t=>`<button data-act="tab" data-v="${t[0]}" class="${UI.tab===t[0]&&!UI.sel?'on':''}">${t[1]}${badge(t[0])}</button>`).join('')}</nav>`}
+  else head+=`<div style="height:12px"></div>`;
+  $('#app').innerHTML=head+`</header><main>${inner}</main>`;
+}
+function badge(tab){
+  if(UI.role!=='admin'||!AD)return '';
+  let n=0;
+  if(tab==='queue')n=AD.camps.filter(c=>c.status==='payment_review'||c.status==='awaiting_payment').length;
+  if(tab==='subs')n=AD.subs.filter(s=>s.status==='pending').length;
+  if(tab==='payouts')n=AD.wds.filter(w=>w.status==='pending').length;
+  return n?` (${n})`:'';
+}
+async function render(){
+  const my=++RT;
+  if(!ME){paint(authView(),false);return}
+  if(!TABS[UI.role].some(t=>t[0]===UI.tab))UI.tab=TABS[UI.role][0][0];
+  let html;
+  try{
+    if(ME.suspended&&UI.role!=='admin')html=`<div class="warn">This account is under review and cannot take tasks or create campaigns. Contact PayTask support.</div><button class="btn alt full" data-act="signout">Sign out</button>`;
+    else if(UI.role==='earn')html=await vEarn();
+    else if(UI.role==='adv')html=await vAdv();
+    else html=await vAdmin();
+  }catch(e){html=`<div class="warn">${esc(e.message||e)}</div>`}
+  if(my!==RT)return;
+  paint(html);
+  const co=$('#c_out');if(co)co.innerHTML=calcOut(parseInt(val('c_slots'))||0,parseInt(val('c_reward'))||0);
+  const np=$('#n_per');if(np)newPreview();
+}
+
+/* ---------- auth ---------- */
+function authView(){
+  const up=UI.authMode==='up';
+  return `<h1>${up?'Create your PayTask account':'Sign in to PayTask'}</h1>
+  <p class="mute">One account works for earning and for running campaigns.</p>
+  <div class="card">
+    ${up?`<label for="f_name">Your name</label><input id="f_name" autocomplete="name">
+    <label for="f_phone">Phone number</label><input id="f_phone" inputmode="tel" autocomplete="tel" placeholder="0801 234 5678">`:''}
+    <label for="f_email">Email</label><input id="f_email" type="email" autocomplete="email">
+    <label for="f_pass">Password</label><input id="f_pass" type="password" autocomplete="${up?'new-password':'current-password'}" placeholder="At least 6 characters">
+    ${up?`<label for="f_ref">Referral code (optional)</label><input id="f_ref" placeholder="e.g. PT-AB12">`:''}
+    <button class="btn full" data-act="${up?'signUp':'signIn'}">${up?'Create account':'Sign in'}</button>
+    <div class="btns"><button class="btn alt sm" data-act="authMode" data-v="${up?'in':'up'}">${up?'I already have an account':'Create an account'}</button></div>
+  </div>`;
+}
+
+/* ---------- earn ---------- */
+async function vEarn(){
+  if(UI.tab==='tasks'){
+    TASKS=await q(sb.rpc('list_open_tasks'));
+    return UI.sel?taskDetail(TASKS.find(t=>t.id===UI.sel)):taskList();
+  }
+  if(UI.tab==='earnings')return earnings();
+  return accountEarn();
+}
+function taskList(){
+  const open=TASKS.filter(t=>!t.mine_status&&Number(t.used)<t.slots);
+  const mine=TASKS.filter(t=>t.mine_status);
+  return `<h1>Tasks for you</h1>
+  <p class="mute">Hi ${esc((ME.name||'there').split(' ')[0])}. Pick a task, follow the steps, submit proof. You are paid once it is verified.</p>
+  ${open.length?open.map(stub).join(''):`<div class="card"><h3>No open tasks right now</h3><p class="mute">New campaigns go live as advertisers fund them. Check back soon.</p></div>`}
+  ${mine.length?`<h2>Your submissions</h2>`+mine.map(t=>`<div class="card row"><div><h3>${esc(t.title)}</h3><span class="mute">${ago(t.mine_at)}</span></div><div style="text-align:right"><div class="num">${fmt(t.reward)}</div><span class="chip ${t.mine_status==='approved'?'live':t.mine_status==='rejected'?'bad':'wait'}">${t.mine_status==='pending'?'In review':t.mine_status==='approved'?'Approved':'Rejected'}</span></div></div>`).join(''):''}`;
+}
+function stub(t){
+  const used=Number(t.used),left=t.slots-used;
+  return `<button class="stub" data-act="open" data-v="${t.id}"><div class="main"><h3>${esc(t.title)}</h3><span class="chip">${esc(t.category)}</span>
+  <div class="bar"><i style="width:${Math.min(100,used/t.slots*100)}%"></i></div><div class="mute" style="margin-top:4px">${left} of ${t.slots} spots left</div></div>
+  <div class="amt"><b class="num">${fmt(t.reward)}</b><span>per task</span></div></button>`;
+}
+function taskDetail(t){
+  if(!t)return back();
+  return `${back()}<h1>${esc(t.title)}</h1>
+  <div class="row"><span class="chip">${esc(t.category)}</span><span class="num big">${fmt(t.reward)}</span></div>
+  <div class="card" style="margin-top:12px"><h3>What to do</h3><p style="white-space:pre-wrap;margin:0">${esc(t.instructions)}</p></div>
+  <div class="card"><h3>Proof needed</h3><p class="mute" style="margin:0">${esc(t.proof_type)}. One submission per person. Duplicate or fake proof is rejected and can get your account suspended.</p></div>
+  ${t.mine_status?`<div class="${t.mine_status==='rejected'?'warn':'ok'}">You submitted this ${ago(t.mine_at)}. Status: <b>${t.mine_status==='pending'?'in review':t.mine_status}</b>.</div>`:
+  Number(t.used)>=t.slots?`<div class="warn">This task is full.</div>`:`
+  <label for="f_proof">Your proof</label>
+  <textarea id="f_proof" placeholder="${t.proof_type.startsWith('Link')?'Paste the link here':'Type your answer here'}"></textarea>
+  <button class="btn full" data-act="submitTask" data-v="${t.id}">Submit for verification</button>`}`;
+}
+async function earnings(){
+  const [bal,wds,tasks]=await Promise.all([q(sb.rpc('my_balance')),q(sb.from('withdrawals').select('*').eq('user_id',ME.id)),q(sb.rpc('list_open_tasks'))]);
+  const b=bal[0]||{approved:0,pending:0,paid:0,requested:0,avail:0};
+  const hist=[...tasks.filter(t=>t.mine_status).map(t=>({t:ts(t.mine_at),txt:'Task: '+t.title,amt:t.reward,st:t.mine_status})),
+    ...wds.map(w=>({t:ts(w.created_at),txt:'Withdrawal',amt:-w.amount,st:w.status}))].sort((a,b)=>b.t-a.t);
+  const avail=Number(b.avail);
+  return `<h1>Earnings</h1>
+  <div class="metric hl"><p class="mute">Available to withdraw</p><div class="num big">${fmt(avail)}</div></div>
+  <div class="grid" style="margin-top:10px"><div class="metric"><p class="mute">In review</p><div class="num">${fmt(b.pending)}</div></div>
+  <div class="metric"><p class="mute">Paid out</p><div class="num">${fmt(b.paid)}</div></div></div>
+  <h2>Withdraw</h2>
+  ${Number(b.requested)?`<div class="ok">Withdrawal of ${fmt(b.requested)} requested. PayTask pays manually, usually within 24 hours.</div>`:''}
+  <div class="card">
+    <label for="w_amt">Amount (minimum ${fmt(ST.min_withdraw)})</label><input id="w_amt" inputmode="numeric" value="${avail>=ST.min_withdraw?avail:''}">
+    <label for="w_bank">Bank</label><input id="w_bank" placeholder="e.g. GTBank">
+    <label for="w_acct">Account number</label><input id="w_acct" inputmode="numeric" maxlength="10" placeholder="10 digits">
+    <label for="w_name">Account name</label><input id="w_name" value="${esc(ME.name)}">
+    <button class="btn full" data-act="withdraw">Request withdrawal</button></div>
+  <h2>History</h2>
+  ${hist.length?`<div class="card"><table>${hist.map(h=>`<tr><td>${esc(h.txt)}<br><span class="mute">${ago(h.t)}</span></td><td class="r">${h.amt<0?'−':''}${fmt(Math.abs(h.amt))}<br><span class="mute">${h.st}</span></td></tr>`).join('')}</table></div>`:`<p class="mute">Nothing yet. Complete a task to start earning.</p>`}`;
+}
+async function accountEarn(){
+  const refs=await q(sb.rpc('my_referrals'));
+  return `<h1>Account</h1>
+  <div class="card"><h3>${esc(ME.name)}</h3><p class="mute" style="margin:0">${esc(ME.email)} · ${esc(ME.phone)}</p>
+  <p style="margin:10px 0 0">Your referral code: <b class="num">${esc(ME.code)}</b><br><span class="mute">${refs} friend${Number(refs)===1?'':'s'} joined with your code. Referrals only count for real people; shared payout accounts are blocked.</span></p></div>
+  ${rulesCard()}<button class="btn alt full" data-act="signout">Sign out</button>`;
+}
+function rulesCard(){
+  return `<div class="card"><h3>Task rules</h3><ul class="clean"><li>One account per person and one submission per task.</li><li>Submit honest proof. Fake or copied proof is rejected.</li><li>Rewards are paid only for approved tasks.</li><li>Never pay for tasks or share your account.</li></ul>
+  <p class="mute" style="margin:10px 0 4px">PayTask never runs these:</p><div class="redlist">${RED.map(r=>`<span>${r}</span>`).join('')}</div></div>`;
+}
+
+/* ---------- advertise ---------- */
+async function vAdv(){
+  if(!ME.biz&&UI.tab!=='account')return `<h1>Reach real people</h1>
+  <p class="mute">Run measurable research, feedback, content and lead-generation campaigns. You prepay, people complete tasks, and you only pay for verified work.</p>
+  <div class="card"><label for="a_biz">Business name</label><input id="a_biz"><button class="btn full" data-act="setBiz">Continue</button></div>`;
+  if(UI.tab==='camps')return advList();
+  if(UI.tab==='new')return newCamp();
+  return `<h1>Account</h1><div class="card"><h3>${esc(ME.biz||ME.name)}</h3><p class="mute" style="margin:0">${esc(ME.email)}</p></div>
+  <div class="card"><h3>What you can run</h3><div class="redlist greenlist">${GREEN.map(g=>`<span>${g}</span>`).join('')}</div>
+  <p class="mute" style="margin:12px 0 4px">What PayTask never runs</p><div class="redlist">${RED.map(r=>`<span>${r}</span>`).join('')}</div></div>
+  <button class="btn alt full" data-act="signout">Sign out</button>`;
+}
+async function advList(){
+  const [rows,stats]=await Promise.all([q(sb.from('campaigns').select('*').eq('owner',ME.id).order('created_at',{ascending:false})),q(sb.rpc('campaign_stats_all'))]);
+  const S={};stats.forEach(s=>S[s.campaign_id]=s);
+  if(UI.sel){const c=rows.find(x=>x.id===UI.sel);return advDetail(c,S[UI.sel])}
+  return `<h1>Your campaigns</h1>${rows.length?rows.map(c=>{const st=S[c.id]||{approved:0};return `<button class="stub" data-act="open" data-v="${c.id}"><div class="main"><h3>${esc(c.title)}</h3>${chip(c.status)}<div class="mute" style="margin-top:6px">${st.approved} verified of ${c.slots} tasks</div><div class="bar"><i style="width:${st.approved/c.slots*100}%"></i></div></div><div class="amt"><b class="num">${fmt(c.budget)}</b><span>budget</span></div></button>`}).join(''):
+  `<div class="card"><h3>No campaigns yet</h3><p class="mute">Create your first campaign. Start small, even ₦10,000 gives you real results.</p><button class="btn" data-act="tab" data-v="new">Create a campaign</button></div>`}`;
+}
+function newCamp(){
+  return `<h1>New campaign</h1><p class="mute">Tell people what to do and what proof to send. You pay after we review it.</p>
+  <div class="card">
+    <label for="n_title">Campaign title</label><input id="n_title" placeholder="e.g. Review our new sneaker collection page">
+    <label for="n_cat">Type</label><select id="n_cat">${GREEN.map(g=>`<option>${g}</option>`).join('')}</select>
+    <label for="n_ins">Instructions</label><textarea id="n_ins" placeholder="Step-by-step: what should each person do?"></textarea>
+    <label for="n_proof">Proof required</label><select id="n_proof"><option>Text answer</option><option>Link (screenshot or post)</option></select>
+    <div class="grid"><div><label for="n_reward">Reward per task (₦)</label><input id="n_reward" inputmode="numeric" value="200" data-calc="new"></div>
+    <div><label for="n_slots">Number of tasks</label><input id="n_slots" inputmode="numeric" value="50" data-calc="new"></div></div>
+    <div class="metric hl" style="margin-top:14px"><p class="mute">You will pay</p><div class="num big" id="n_total"></div><p class="mute" id="n_per" style="margin:2px 0 0"></p></div>
+    <button class="btn full" data-act="createCamp">Create campaign</button></div>`;
+}
+function newPreview(){
+  const r=parseInt(val('n_reward'))||0,s=parseInt(val('n_slots'))||0;
+  $('#n_total').textContent=fmt(price(s,r));$('#n_per').textContent=s?fmt(price(s,r)/s)+' per verified task':'';
+}
+async function advDetail(c,st){
+  if(!c)return back();
+  st=st||{approved:0,pending:0,users:0};
+  let extra='';
+  if(c.status==='awaiting_payment')extra=`<div class="card"><h3>Pay ${fmt(c.budget)} to activate</h3><p class="mute">Transfer to this account and use <b>${c.id.slice(0,6).toUpperCase()}</b> as your reference.</p><pre>${esc(ST.pay_info)}</pre>
+    <label for="p_ref">Transfer name or reference</label><input id="p_ref" placeholder="Name on the transfer"><button class="btn full" data-act="iPaid" data-v="${c.id}">I have paid</button></div>`;
+  else if(c.status==='payment_review')extra=`<div class="ok">Your payment is being checked. The campaign goes live once PayTask confirms it.</div>`;
+  else if(c.status==='rejected')extra=`<div class="warn">Rejected: ${esc(c.reason||'Does not meet PayTask campaign rules.')}</div>`;
+  const ap=await q(sb.from('submissions').select('proof').eq('campaign_id',c.id).eq('status','approved'));
+  return `${back()}<h1>${esc(c.title)}</h1><div class="row">${chip(c.status)}<span class="mute">${esc(c.category)}</span></div>${extra}
+  <div class="grid" style="margin-top:12px">
+  <div class="metric"><p class="mute">Verified tasks</p><div class="num big">${st.approved}<span class="mute"> / ${c.slots}</span></div></div>
+  <div class="metric"><p class="mute">In review</p><div class="num big">${st.pending}</div></div>
+  <div class="metric"><p class="mute">People reached</p><div class="num big">${st.users}</div></div>
+  <div class="metric"><p class="mute">Cost per task</p><div class="num big">${fmt(c.budget/c.slots)}</div></div></div>
+  <div class="card" style="margin-top:12px"><h3>Instructions</h3><p style="white-space:pre-wrap;margin:0">${esc(c.instructions)}</p></div>
+  ${ap.length?`<h2>Verified results</h2>${ap.map(x=>`<div class="proof">${linkify(x.proof)}</div>`).join('')}`:''}`;
+}
+
+/* ---------- admin ---------- */
+async function loadAdmin(){
+  const [users,camps,subs,wds,pays,stats]=await Promise.all([
+    q(sb.from('profiles').select('*')),q(sb.from('campaigns').select('*').order('created_at')),
+    q(sb.from('submissions').select('*')),q(sb.from('withdrawals').select('*')),
+    q(sb.from('payments').select('*')),q(sb.rpc('campaign_stats_all'))]);
+  AD={users,camps,subs,wds,pays,stats,U:{},C:{},S:{}};
+  users.forEach(u=>AD.U[u.id]=u);camps.forEach(c=>AD.C[c.id]=c);stats.forEach(s=>AD.S[s.campaign_id]=s);
+}
+async function vAdmin(){
+  await loadAdmin();
+  return {queue:adQueue,subs:adSubs,payouts:adPayouts,people:adPeople,money:adMoney,settings:adSettings}[UI.tab]();
+}
+function adQueue(){
+  const q2=AD.camps.filter(c=>c.status==='payment_review'||c.status==='awaiting_payment'),live=AD.camps.filter(c=>c.status==='live');
+  return `<h1>Campaign approvals</h1><p class="mute">Confirm the money is in your bank account before approving. Then the campaign goes live.</p>
+  ${q2.length?q2.map(c=>`<div class="card"><div class="row"><h3>${esc(c.title)}</h3>${chip(c.status)}</div>
+    <p class="mute" style="margin:2px 0 6px">${esc(AD.U[c.owner]?.biz||AD.U[c.owner]?.name)} · ${esc(c.category)} · ${c.slots} tasks at ${fmt(c.reward)}</p>
+    <p style="white-space:pre-wrap;margin:0 0 6px">${esc(c.instructions)}</p>
+    <p class="mute" style="margin:0">Budget <b>${fmt(c.budget)}</b>. ${c.pay_ref?'Advertiser reference: '+esc(c.pay_ref):'Payment not yet reported.'}</p>
+    <input id="rj_${c.id}" placeholder="Rejection reason (if rejecting)" style="margin-top:10px">
+    <div class="btns"><button class="btn sm" data-act="approveCamp" data-v="${c.id}">Payment received, go live</button><button class="btn bad sm" data-act="rejectCamp" data-v="${c.id}">Reject</button></div></div>`).join(''):`<div class="card"><p class="mute" style="margin:0">Nothing waiting.</p></div>`}
+  <h2>Live campaigns</h2>
+  ${live.length?live.map(c=>{const st=AD.S[c.id]||{approved:0,pending:0,total:0};return `<div class="card"><div class="row"><h3>${esc(c.title)}</h3>${chip('live')}</div><p class="mute" style="margin:2px 0 0">${st.approved} verified · ${st.pending} pending · ${Number(st.total)-Number(st.rejected||0)}/${c.slots} spots used</p><div class="btns"><button class="btn alt sm" data-act="closeCamp" data-v="${c.id}">Close campaign</button></div></div>`}).join(''):`<p class="mute">None live.</p>`}`;
+}
+function adSubs(){
+  const p=AD.subs.filter(s=>s.status==='pending').sort((a,b)=>ts(a.created_at)-ts(b.created_at));
+  return `<h1>Verify submissions</h1><p class="mute">Approve valid proof. Rejected tasks free the spot for someone else.</p>
+  ${p.length?p.map(s=>{const c=AD.C[s.campaign_id],u=AD.U[s.user_id];return `<div class="card"><div class="row"><h3>${esc(c?.title)}</h3><b class="num">${fmt(c?.reward)}</b></div>
+  <p class="mute" style="margin:0">${esc(u?.name)} · ${esc(u?.phone)} · ${ago(s.created_at)}</p>${(s.flags||[]).map(f=>`<span class="flag">${esc(f)}</span>`).join('')}
+  <div class="proof">${linkify(s.proof)}</div>
+  <div class="btns"><button class="btn sm" data-act="approveSub" data-v="${s.id}">Approve</button><button class="btn bad sm" data-act="rejectSub" data-v="${s.id}">Reject</button></div></div>`}).join(''):`<div class="card"><p class="mute" style="margin:0">Nothing to verify.</p></div>`}`;
+}
+function adPayouts(){
+  const p=AD.wds.filter(w=>w.status==='pending'),d=AD.wds.filter(w=>w.status!=='pending').sort((a,b)=>ts(b.created_at)-ts(a.created_at)).slice(0,15);
+  return `<h1>Payouts</h1><p class="mute">Send the money from your bank, then mark it paid. Check flags first.</p>
+  ${p.length?p.map(w=>{const u=AD.U[w.user_id];const dup=AD.wds.some(x=>x.id!==w.id&&x.user_id!==w.user_id&&x.acct===w.acct);return `<div class="card"><div class="row"><h3>${esc(u?.name)}</h3><b class="num">${fmt(w.amount)}</b></div>
+  <p style="margin:2px 0 0">${esc(w.bank)} · <b>${esc(w.acct)}</b><br><span class="mute">${esc(w.acct_name)}</span></p>${dup?'<span class="flag">Account used by another user</span>':''}
+  <div class="btns"><button class="btn sm" data-act="payWd" data-v="${w.id}">Mark paid</button><button class="btn bad sm" data-act="rejectWd" data-v="${w.id}">Reject</button></div></div>`}).join(''):`<div class="card"><p class="mute" style="margin:0">No pending withdrawals.</p></div>`}
+  ${d.length?`<h2>Recent</h2><div class="card"><table>${d.map(w=>`<tr><td>${esc(AD.U[w.user_id]?.name)}<br><span class="mute">${ago(w.created_at)}</span></td><td class="r">${fmt(w.amount)}<br><span class="mute">${w.status}</span></td></tr>`).join('')}</table></div>`:''}`;
+}
+function userFlags(u){
+  const f=[];
+  if(u.phone&&AD.users.some(x=>x.id!==u.id&&x.phone===u.phone))f.push('Phone shared with another account');
+  const mine=AD.wds.filter(w=>w.user_id===u.id);
+  if(mine.some(w=>AD.wds.some(x=>x.user_id!==u.id&&x.acct===w.acct)))f.push('Payout account shared with another user');
+  const ss=AD.subs.filter(s=>s.user_id===u.id);
+  if(ss.some(s=>(s.flags||[]).length))f.push('Flagged submissions');
+  const done=ss.filter(s=>s.status!=='pending'),rj=done.filter(s=>s.status==='rejected').length;
+  if(done.length>=3&&rj/done.length>=.5)f.push('High rejection rate');
+  return f;
+}
+function adPeople(){
+  return `<h1>Users</h1><p class="mute">${AD.users.length} accounts.</p>
+  ${AD.users.map(u=>{const ss=AD.subs.filter(s=>s.user_id===u.id),ap=ss.filter(s=>s.status==='approved'),earned=ap.reduce((a,s)=>a+(AD.C[s.campaign_id]?.reward||0),0),refs=AD.users.filter(x=>x.referred_by===u.code).length;
+  return `<div class="card"><div class="row"><h3>${esc(u.name||'(no name)')}</h3>${u.suspended?'<span class="chip bad">Suspended</span>':''}</div>
+  <p class="mute" style="margin:0">${esc(u.phone)} · ${ss.length} submitted · ${ap.length} approved · ${refs} referred · earned ${fmt(earned)}</p>
+  ${userFlags(u).map(x=>`<span class="flag">${esc(x)}</span>`).join('')}
+  ${u.id!==ME.id?`<div class="btns"><button class="btn ${u.suspended?'alt':'bad'} sm" data-act="suspend" data-v="${u.id}" data-w="${u.suspended?'0':'1'}">${u.suspended?'Restore user':'Suspend user'}</button></div>`:''}</div>`}).join('')}`;
+}
+function adMoney(){
+  const cashIn=AD.pays.filter(p=>p.type==='in').reduce((a,p)=>a+p.amount,0),cashOut=AD.pays.filter(p=>p.type==='out').reduce((a,p)=>a+p.amount,0);
+  const approvedAll=AD.subs.filter(s=>s.status==='approved').reduce((a,s)=>a+(AD.C[s.campaign_id]?.reward||0),0);
+  const cs=AD.camps.filter(c=>['live','closed'].includes(c.status));
+  return `<h1>Economics</h1><div class="grid">
+  <div class="metric"><p class="mute">Advertiser money in</p><div class="num big">${fmt(cashIn)}</div></div>
+  <div class="metric"><p class="mute">Paid to users</p><div class="num big">${fmt(cashOut)}</div></div>
+  <div class="metric"><p class="mute">Owed to users</p><div class="num big">${fmt(approvedAll-cashOut)}</div></div>
+  <div class="metric hl"><p class="mute">Your position</p><div class="num big">${fmt(cashIn-approvedAll)}</div></div></div>
+  <p class="mute" style="margin-top:8px">Position is money in minus approved rewards. It is before payment fees and operating costs, so subtract those to find true profit.</p>
+  <h2>Campaign results</h2>
+  ${cs.length?cs.map(c=>{const st=AD.S[c.id]||{approved:0},paidIn=AD.pays.filter(p=>p.type==='in'&&p.campaign_id===c.id).reduce((a,p)=>a+p.amount,0),rw=Number(st.approved)*c.reward;
+  return `<div class="card"><div class="row"><h3>Campaign #${String(AD.camps.indexOf(c)+1).padStart(3,'0')}</h3>${chip(c.status)}</div>
+  <table><tr><td colspan="2">${esc(c.title)}</td></tr><tr><td>Advertiser paid</td><td class="r">${fmt(paidIn)}</td></tr><tr><td>User rewards (approved)</td><td class="r">${fmt(rw)}</td></tr>
+  <tr><td><b>PayTask contribution</b></td><td class="r"><b>${fmt(paidIn-rw)}</b></td></tr></table>
+  <div class="btns"><button class="btn alt sm" data-act="showCase" data-v="${c.id}">Case study text</button></div><div id="case_${c.id}"></div></div>`}).join(''):`<div class="card"><p class="mute" style="margin:0">Results appear once a campaign is live.</p></div>`}
+  <h2>Pricing calculator</h2><div class="card"><div class="grid">
+  <div><label for="c_slots">Tasks</label><input id="c_slots" inputmode="numeric" value="100" data-calc="calc"></div>
+  <div><label for="c_reward">Reward each (₦)</label><input id="c_reward" inputmode="numeric" value="600" data-calc="calc"></div></div><div id="c_out"></div></div>`;
+}
+function calcOut(slots,reward){
+  const b=price(slots,reward),s=split(b);
+  return `<table style="margin-top:8px"><tr><td>Advertiser pays</td><td class="r"><b>${fmt(b)}</b></td></tr><tr><td>User rewards</td><td class="r">${fmt(s.rewards)}</td></tr>
+  <tr><td>Fees, verification and fraud reserve (${ST.reserve_pct}%)</td><td class="r">${fmt(s.reserve)}</td></tr>
+  <tr><td>PayTask contribution (${ST.contrib_pct}%)</td><td class="r"><b>${fmt(s.contrib)}</b></td></tr>
+  <tr><td>Advertiser cost per task</td><td class="r">${fmt(slots?b/slots:0)}</td></tr></table>`;
+}
+function adSettings(){
+  return `<h1>Settings</h1><p class="mute">Do not lock these percentages yet. Test what advertisers will pay. Changes apply to new campaigns only.</p>
+  <div class="card"><div class="grid">
+  <div><label for="s_res">Fee and fraud reserve %</label><input id="s_res" inputmode="numeric" value="${ST.reserve_pct}"></div>
+  <div><label for="s_con">PayTask contribution %</label><input id="s_con" inputmode="numeric" value="${ST.contrib_pct}"></div>
+  <div><label for="s_min">Minimum withdrawal (₦)</label><input id="s_min" inputmode="numeric" value="${ST.min_withdraw}"></div>
+  <div><label for="s_mr">Minimum task reward (₦)</label><input id="s_mr" inputmode="numeric" value="${ST.min_reward}"></div></div>
+  <label for="s_pay">Payment details shown to advertisers</label><textarea id="s_pay">${esc(ST.pay_info)}</textarea>
+  <button class="btn full" data-act="saveSettings">Save settings</button></div>
+  <button class="btn alt full" data-act="signout">Sign out</button>`;
+}
+
+/* ---------- actions ---------- */
+async function call(fn,args,ok){
+  const {data,error}=await sb.rpc(fn,args);
+  if(error){toast(error.message);return null}
+  if(ok)toast(ok);
+  return {data};
+}
+const A={
+  role(v){UI.role=v;UI.tab=TABS[v][0][0];UI.sel=null;render()},
+  tab(v){UI.tab=v;UI.sel=null;render();scrollTo(0,0)},
+  open(v){UI.sel=v;render();scrollTo(0,0)},
+  back(){UI.sel=null;render()},
+  authMode(v){UI.authMode=v;render()},
+  async signIn(){
+    const {data,error}=await sb.auth.signInWithPassword({email:val('f_email'),password:document.getElementById('f_pass').value});
+    if(error)return toast(error.message);
+    await loadMe(data.user);UI={role:'earn',tab:'tasks',sel:null,authMode:'in'};render();
+  },
+  async signUp(){
+    const name=val('f_name'),phone=val('f_phone').replace(/\s+/g,''),email=val('f_email'),pass=document.getElementById('f_pass').value;
+    if(name.length<2)return toast('Enter your name');
+    if(phone.replace(/\D/g,'').length<10)return toast('Enter a valid phone number');
+    if(!email)return toast('Enter your email');
+    if(pass.length<6)return toast('Password needs at least 6 characters');
+    const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{name,phone,ref:val('f_ref')}}});
+    if(error)return toast(error.message);
+    if(!data.session){UI.authMode='in';render();return toast('Check your email to confirm, then sign in')}
+    await loadMe(data.user);UI={role:'earn',tab:'tasks',sel:null,authMode:'in'};toast('Welcome to PayTask');render();
+  },
+  async signout(){await sb.auth.signOut();ME=null;AD=null;UI={role:'earn',tab:'tasks',sel:null,authMode:'in'};render()},
+  async setBiz(){const r=await call('set_business',{p_biz:val('a_biz')});if(r){await loadMe();render()}},
+  async submitTask(v){const r=await call('submit_task',{p_campaign:v,p_proof:val('f_proof')},'Submitted. Verification usually takes a few hours');if(r){UI.sel=null;render()}},
+  async withdraw(){
+    const r=await call('request_withdrawal',{p_amount:parseInt(val('w_amt'))||0,p_bank:val('w_bank'),p_acct:val('w_acct').replace(/\D/g,''),p_name:val('w_name')},'Withdrawal requested');
+    if(r)render();
+  },
+  async createCamp(){
+    const r=await call('create_campaign',{p_title:val('n_title'),p_category:val('n_cat'),p_instructions:val('n_ins'),p_proof:val('n_proof'),p_reward:parseInt(val('n_reward'))||0,p_slots:parseInt(val('n_slots'))||0},'Campaign created. Pay to activate');
+    if(r){UI.tab='camps';UI.sel=r.data;render()}
+  },
+  async iPaid(v){const r=await call('mark_paid',{p_id:v,p_ref:val('p_ref')},'Thanks. We will confirm your payment');if(r)render()},
+  async approveCamp(v){if(await call('admin_approve_campaign',{p_id:v},'Campaign is live'))render()},
+  async rejectCamp(v){if(await call('admin_reject_campaign',{p_id:v,p_reason:val('rj_'+v)},'Campaign rejected'))render()},
+  async closeCamp(v){if(await call('admin_close_campaign',{p_id:v},'Campaign closed'))render()},
+  async approveSub(v){if(await call('admin_review_submission',{p_id:v,p_approve:true},'Approved'))render()},
+  async rejectSub(v){if(await call('admin_review_submission',{p_id:v,p_approve:false},'Rejected'))render()},
+  async payWd(v){if(await call('admin_pay_withdrawal',{p_id:v},'Marked as paid'))render()},
+  async rejectWd(v){if(await call('admin_reject_withdrawal',{p_id:v},'Withdrawal rejected'))render()},
+  async suspend(v,b){
+    const {error}=await sb.from('profiles').update({suspended:b.dataset.w==='1'}).eq('id',v);
+    if(error)return toast(error.message);render();
+  },
+  showCase(v){
+    const c=AD.C[v],st=AD.S[v]||{},paidIn=AD.pays.filter(p=>p.type==='in'&&p.campaign_id===v).reduce((a,p)=>a+p.amount,0),rw=Number(st.approved||0)*c.reward;
+    const t=`PAYTASK CAMPAIGN #${String(AD.camps.indexOf(c)+1).padStart(3,'0')}\nAdvertiser: ${AD.U[c.owner]?.biz||AD.U[c.owner]?.name}\nBudget: ${fmt(c.budget)}\nParticipants: ${st.users||0}\nTasks submitted: ${st.total||0}\nValid submissions: ${st.approved||0}\nRejected: ${st.rejected||0}\nReward per task: ${fmt(c.reward)}\nUser rewards: ${fmt(rw)}\nPayTask contribution: ${fmt(paidIn-rw)}\nAdvertiser feedback: ________`;
+    $('#case_'+v).innerHTML=`<pre>${esc(t)}</pre>`;
+    try{navigator.clipboard.writeText(t).then(()=>toast('Copied'),()=>{})}catch(e){}
+  },
+  async saveSettings(){
+    const r=parseInt(val('s_res')),c=parseInt(val('s_con')),m=parseInt(val('s_min')),mr=parseInt(val('s_mr'));
+    if(isNaN(r)||isNaN(c)||r<0||c<0||r+c>=90)return toast('Percentages must total under 90');
+    const {error}=await sb.from('settings').update({reserve_pct:r,contrib_pct:c,min_withdraw:m||500,min_reward:mr||100,pay_info:val('s_pay')}).eq('id',1);
+    if(error)return toast(error.message);
+    await loadMe();toast('Settings saved');render();
+  }
+};
+
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const f=A[b.dataset.act];if(!f)return;
+  b.disabled=true;
+  try{await f(b.dataset.v,b)}catch(err){toast(err.message||'Something went wrong')}
+  b.disabled=false;
+});
+document.addEventListener('input',e=>{
+  const k=e.target.dataset&&e.target.dataset.calc;if(!k)return;
+  if(k==='new')newPreview();
+  else $('#c_out').innerHTML=calcOut(parseInt(val('c_slots'))||0,parseInt(val('c_reward'))||0);
+});
+window.addEventListener('load',boot);
+
+</script>
+</body>
+</html>
